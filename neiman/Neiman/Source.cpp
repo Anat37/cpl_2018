@@ -120,6 +120,10 @@ void look_st_add() {
 	IP += 3;
 }
 
+void print_string() {
+	printf("%s", (char*)(memory + memory[IP + 1]));
+}
+
 void main() {
 	
 	FILE* f = fopen("input_code.bin", "r");
@@ -151,6 +155,7 @@ void main() {
 		case GOTO_ADD: goto_add(); break;
 		case GOTO_FROM: goto_from(); break;
 		case LOOK_ST_ADD: look_st_add(); break;
+		case PRINT_STRING: print_string(); break;
 		}
 
 		if (memory[IP] == STOP_COMM)

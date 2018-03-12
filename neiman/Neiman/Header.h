@@ -7,6 +7,7 @@
 #define REG_4 MEMORY_SIZE-5
 #define SP_ADD MEMORY_SIZE-6
 #define GL_VAR MEMORY_SIZE-7
+#define STR_ADD 512
 
 #define STOP_COMM 32228
 #define SUM_REG 32226
@@ -30,3 +31,4 @@
 #define PUT_FROM 32210
 #define DEC_REG 32209
 #define LOOK_ST_ADD 32208
+#define PRINT_STRING 32207

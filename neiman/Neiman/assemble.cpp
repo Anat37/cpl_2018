@@ -7,7 +7,7 @@
 #include "Header.h"
 
 
-
+int memory[MEMORY_SIZE];
 
 struct var {
 	var() {}
@@ -54,6 +54,7 @@ std::set<fuckxutility, mycomp> functions;
 std::vector<int> ifstack;
 int curr_var_ptr = GL_VAR;
 int curr_func_ptr = 0;
+int curr_str_ptr = STR_ADD;
 
 int resolve_arg(fuckxutility& foo, std::string& str) {
 	if (str == "reg1") {
@@ -159,6 +160,8 @@ void add_gl_var() {
 
 std::vector<std::string> tokens;
 
+
+
 void add_func(fuckxutility& foo) {
 	std::string str;
 	while (std::cin >> str) {
@@ -172,6 +175,29 @@ void add_func(fuckxutility& foo) {
 			foo.code.push_back(PUT_VAL);
 			foo.code.push_back(var1.value);
 			foo.variables.push_back(var1);
+		}
+		if (str == "var_string") {
+			std::string name, token, str1;
+			std::cin >> name >> token;
+			while (token.back() != '\"') {
+				str1.append(token);
+			}
+			var var1;
+			var1.name = name;
+			var1.value = curr_str_ptr;
+			strcpy((char*)(memory + curr_str_ptr), str1.c_str());
+			curr_str_ptr += str1.size() + 1;
+			
+			foo.code.push_back(PUT_VAL);
+			foo.code.push_back(var1.value);
+			foo.variables.push_back(var1);
+		}
+		if (str == "prints") {
+			std::string arg1;
+			std::cin >> arg1;
+			int arga = resolve_arg(foo, arg1);
+			foo.code.push_back(PRINT_STRING);
+			foo.code.push_back(arga);
 		}
 		if (str == "mov") {
 			std::string arg1, arg2;
@@ -297,7 +323,6 @@ int main() {
 	FILE* output = fopen("input_code.bin", "w");
 	freopen("input_ass_code.txt", "r", stdin);
 
-	int memory[MEMORY_SIZE];
 	for (int i = 0; i < MEMORY_SIZE; ++i)
 		memory[i] = 0;
 	

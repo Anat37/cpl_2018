@@ -180,17 +180,17 @@ void add_func(fuckxutility& foo) {
 			std::string name, token, str1;
 			std::cin >> name >> token;
 			while (token.back() != '\"') {
-				str1.append(token);
+				str1.append(token + ' ');
+				std::cin >> token;
 			}
+			str1.append(token + '\0');
 			var var1;
 			var1.name = name;
 			var1.value = curr_str_ptr;
 			strcpy((char*)(memory + curr_str_ptr), str1.c_str());
 			curr_str_ptr += str1.size() + 1;
-			
-			foo.code.push_back(PUT_VAL);
-			foo.code.push_back(var1.value);
-			foo.variables.push_back(var1);
+			var1.address = curr_var_ptr--;
+			variables.insert(var1);
 		}
 		if (str == "prints") {
 			std::string arg1;
@@ -320,8 +320,8 @@ void add_func(fuckxutility& foo) {
 }
 
 int main() {
-	FILE* output = fopen("input_code.bin", "w");
-	freopen("input_ass_code.txt", "r", stdin);
+	FILE* output = fopen("machine_code.bin", "w");
+	freopen("input_code.txt", "r", stdin);
 
 	for (int i = 0; i < MEMORY_SIZE; ++i)
 		memory[i] = 0;

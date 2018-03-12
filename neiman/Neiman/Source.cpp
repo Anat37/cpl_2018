@@ -121,12 +121,13 @@ void look_st_add() {
 }
 
 void print_string() {
-	printf("%s", (char*)(memory + memory[IP + 1]));
+	printf("%s", (char*)(memory + memory[memory[IP + 1]]));
+	IP += 2;
 }
 
 void main() {
 	
-	FILE* f = fopen("input_code.bin", "r");
+	FILE* f = fopen("machine_code.bin", "r");
 	//memory = new int[MEMORY_SIZE];
 	int read_cnt = 0;
 	/*while (read_cnt < MEMORY_SIZE) {

@@ -1,6 +1,0 @@
-﻿  assemble.cpp
-c:\users\anatoly\documents\visual studio 2017\projects\neiman\neiman\assemble.cpp(72): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\anatoly\documents\visual studio 2017\projects\neiman\neiman\assemble.cpp(192): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\anatoly\documents\visual studio 2017\projects\neiman\neiman\assemble.cpp(276): warning C4018: <: несоответствие типов со знаком и без знака
-  Neiman.vcxproj -> C:\Users\Anatoly\documents\visual studio 2017\Projects\Neiman\Assembler\Neiman.exe
-  Neiman.vcxproj -> C:\Users\Anatoly\documents\visual studio 2017\Projects\Neiman\Assembler\Neiman.pdb (Partial PDB)

@@ -15,17 +15,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source.cpp">
-      <Filter>Файлы исходного кода</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Header.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="input_ass_code.txt">
+    <Text Include="input_code.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
+    <Text Include="description.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
     <Text Include="assemble.cpp">
@@ -33,8 +31,13 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <None Include="input_code.bin">
+    <None Include="machine_code.bin">
       <Filter>Файлы ресурсов</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source.cpp">
+      <Filter>Файлы исходного кода</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

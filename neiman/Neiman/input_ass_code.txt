@@ -1,0 +1,40 @@
+def rec fib 1 a
+mov a reg1
+mov 1 reg2
+equal
+if
+mov 1 reg3
+return
+endif
+mov 2 reg2
+equal
+if
+mov 2 reg3
+return
+endif
+var prev 0
+mov 1 reg2
+mov a reg1
+dec
+mov reg3 prev
+var prevprev 0
+mov 2 reg2
+mov a reg1
+dec
+mov reg3 prevprev
+call fib prev
+mov reg3 prev
+call fib prevprev
+mov reg3 reg1
+mov prev reg2
+sum
+return
+enddef
+def main 0
+scan reg2
+var n 0
+mov reg2 n
+call fib n
+print reg3
+exit
+enddef

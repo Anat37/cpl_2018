@@ -1,0 +1,32 @@
+#pragma once
+#define MEMORY_SIZE 1024
+#define IP_ADD MEMORY_SIZE-1
+#define REG_1 MEMORY_SIZE-2
+#define REG_2 MEMORY_SIZE-3
+#define REG_3 MEMORY_SIZE-4
+#define REG_4 MEMORY_SIZE-5
+#define SP_ADD MEMORY_SIZE-6
+#define GL_VAR MEMORY_SIZE-7
+
+#define STOP_COMM 32228
+#define SUM_REG 32226
+#define MOV_CONST 32225
+#define PRINT_INT_REG 32224
+#define SCAN_INT_REG 32223
+#define IF_T 32222
+#define IF_NOT 32221
+#define EQUAL 32220
+#define MORE 32219
+#define OR 32218
+#define AND 32217
+#define VARIABLE 32216
+
+#define PUT_VAL 32215
+#define POP 32214
+#define LOOK_ST 32213
+#define GOTO_ADD 32212
+#define GOTO_FROM 32227
+#define MOV 32211
+#define PUT_FROM 32210
+#define DEC_REG 32209
+#define LOOK_ST_ADD 32208

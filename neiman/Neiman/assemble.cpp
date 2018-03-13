@@ -25,10 +25,10 @@ struct var {
 	}
 };
 
-struct fuckxutility {
-	fuckxutility(){}
+struct myfunc {
+	myfunc(){}
 
-	fuckxutility(std::string _name) {
+	myfunc(std::string _name) {
 		name = _name;
 	}
 
@@ -43,20 +43,20 @@ struct fuckxutility {
 };
 
 struct mycomp {
-	bool operator ()(const fuckxutility& a, const fuckxutility& b) const {
+	bool operator ()(const myfunc& a, const myfunc& b) const {
 		return a.name > b.name;
 	}
 };
 
 
 std::set<var, var> variables;
-std::set<fuckxutility, mycomp> functions;
+std::set<myfunc, mycomp> functions;
 std::vector<int> ifstack;
 int curr_var_ptr = GL_VAR;
 int curr_func_ptr = 0;
 int curr_str_ptr = STR_ADD;
 
-int resolve_arg(fuckxutility& foo, std::string& str) {
+int resolve_arg(myfunc& foo, std::string& str) {
 	if (str == "reg1") {
 		return REG_1;
 	}
@@ -80,7 +80,7 @@ int resolve_arg(fuckxutility& foo, std::string& str) {
 	return -1;
 }
 
-int resolve_arg_call(fuckxutility& foo, std::string& str) {
+int resolve_arg_call(myfunc& foo, std::string& str) {
 	if (str == "reg1") {
 		return REG_1;
 	}
@@ -104,7 +104,7 @@ int resolve_arg_call(fuckxutility& foo, std::string& str) {
 	return -1;
 }
 
-int resolve_arg_dest(fuckxutility& foo, std::string& str, int& indin) {
+int resolve_arg_dest(myfunc& foo, std::string& str, int& indin) {
 	if (str == "reg1") {
 		return REG_1;
 	}
@@ -129,7 +129,7 @@ int resolve_arg_dest(fuckxutility& foo, std::string& str, int& indin) {
 	}
 }
 
-int resolve_reg(fuckxutility& foo, std::string& str) {
+int resolve_reg(myfunc& foo, std::string& str) {
 	if (str == "reg1") {
 		return 1;
 	}
@@ -162,7 +162,7 @@ std::vector<std::string> tokens;
 
 
 
-void add_func(fuckxutility& foo) {
+void add_func(myfunc& foo) {
 	std::string str;
 	while (std::cin >> str) {
 		tokens.push_back(str);
@@ -240,11 +240,11 @@ void add_func(fuckxutility& foo) {
 		}
 		if (str == "call") {
 			std::cin >> str;
-			fuckxutility foo2;
+			myfunc foo2;
 			if (foo.rec && foo.name == str) {
 				foo2 = foo;
 			} else {
-				foo2 = *functions.find(fuckxutility(str));
+				foo2 = *functions.find(myfunc(str));
 			}
 			// адрес возврата
 			foo.code.push_back(PUT_VAL);
@@ -335,7 +335,7 @@ int main() {
 		std::string name;
 		int num_arg;
 		std::cin >> name;
-		fuckxutility foo;
+		myfunc foo;
 		if (name == "rec") {
 			std::cin >> name;
 			foo.name = name;
@@ -364,7 +364,7 @@ int main() {
 		memory[var1.address] = var1.value;
 	}
 	memory[SP_ADD] = curr_var_ptr;
-	auto foo2 = functions.find(fuckxutility("main"));
+	auto foo2 = functions.find(myfunc("main"));
 	memory[IP_ADD] = foo2->address;
 
 	int write_cnt = 0;

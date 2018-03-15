@@ -1,5 +1,4 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include <stdio.h>
 #include <iostream>
 #include <string>
 #include <set>
@@ -9,10 +8,10 @@
 
 int memory[MEMORY_SIZE];
 
-struct var {
-	var() {}
+struct variableDefinition {
+	variableDefinition() {}
 
-	var(std::string _name) {
+	variableDefinition(std::string _name) {
 		name = _name;
 	}
 
@@ -20,15 +19,15 @@ struct var {
 	std::string name;
 	int value = 0;
 
-	bool operator ()(const var& a, const var& b) const {
+	bool operator ()(const variableDefinition& a, const variableDefinition& b) const {
 		return a.name > b.name;
 	}
 };
 
-struct myfunc {
-	myfunc(){}
+struct functionDefinition {
+	functionDefinition(){}
 
-	myfunc(std::string _name) {
+	functionDefinition(std::string _name) {
 		name = _name;
 	}
 
@@ -36,27 +35,35 @@ struct myfunc {
 	int arg_cnt = 0;
 	std::string name;
 	std::vector<int> code;
-	std::vector<var> variables;
+	std::vector<variableDefinition> variables;
 	bool rec = false;
 
-	
-};
-
-struct mycomp {
-	bool operator ()(const myfunc& a, const myfunc& b) const {
+	bool operator ()(const functionDefinition& a, const functionDefinition& b) const {
 		return a.name > b.name;
 	}
 };
 
+std::set<variableDefinition, variableDefinition> variables;
+std::set<functionDefinition, functionDefinition> functions;
+std::vector<int> ifPointersStack;
+int currentVariablePtr = GL_VAR;
+int currentFunctionPtr = 0;
+int currentStringPtr = STR_ADD;
 
-std::set<var, var> variables;
-std::set<myfunc, mycomp> functions;
-std::vector<int> ifstack;
-int curr_var_ptr = GL_VAR;
-int curr_func_ptr = 0;
-int curr_str_ptr = STR_ADD;
+int resolveRegister(const std::string& str) {
+	if (str == "reg1") {
+		return 1;
+	}
+	if (str == "reg2") {
+		return 2;
+	}
+	if (str == "reg3") {
+		return 3;
+	}
+	return -1;
+}
 
-int resolve_arg(myfunc& foo, std::string& str) {
+int resolveArguments(functionDefinition& foo, const std::string& str, int stackOffset) {
 	if (str == "reg1") {
 		return REG_1;
 	}
@@ -66,21 +73,21 @@ int resolve_arg(myfunc& foo, std::string& str) {
 	if (str == "reg3") {
 		return REG_3;
 	}
-	auto var1 = variables.find(var(str));
+	auto var1 = variables.find(variableDefinition(str));
 	if (var1 != variables.end()) {
 		return var1->address;
 	}
 	for (int i = 0; i < foo.variables.size(); ++i) {
 		if (foo.variables[i].name == str) {
 			foo.code.push_back(LOOK_ST);
-			foo.code.push_back(foo.variables.size() - i);
+			foo.code.push_back(foo.variables.size() - i + stackOffset);
 			return REG_4;
 		}
 	}
 	return -1;
 }
 
-int resolve_arg_call(myfunc& foo, std::string& str) {
+int resolveArgumentsForDestination(functionDefinition& foo, std::string& str, int& indin) {
 	if (str == "reg1") {
 		return REG_1;
 	}
@@ -90,31 +97,7 @@ int resolve_arg_call(myfunc& foo, std::string& str) {
 	if (str == "reg3") {
 		return REG_3;
 	}
-	auto var1 = variables.find(var(str));
-	if (var1 != variables.end()) {
-		return var1->address;
-	}
-	for (int i = 0; i < foo.variables.size(); ++i) {
-		if (foo.variables[i].name == str) {
-			foo.code.push_back(LOOK_ST);
-			foo.code.push_back(foo.variables.size() - i + 1);
-			return REG_4;
-		}
-	}
-	return -1;
-}
-
-int resolve_arg_dest(myfunc& foo, std::string& str, int& indin) {
-	if (str == "reg1") {
-		return REG_1;
-	}
-	if (str == "reg2") {
-		return REG_2;
-	}
-	if (str == "reg3") {
-		return REG_3;
-	}
-	auto var1 = variables.find(var(str));
+	auto var1 = variables.find(variableDefinition(str));
 	if (var1 != variables.end()) {
 		return var1->address;
 	}
@@ -129,22 +112,9 @@ int resolve_arg_dest(myfunc& foo, std::string& str, int& indin) {
 	}
 }
 
-int resolve_reg(myfunc& foo, std::string& str) {
-	if (str == "reg1") {
-		return 1;
-	}
-	if (str == "reg2") {
-		return 2;
-	}
-	if (str == "reg3") {
-		return 3;
-	}
-	return -1;
-}
-
-var add_var() {
+variableDefinition createVariableDefinition() {
 	std::string str;
-	var var1;
+	variableDefinition var1;
 	std::cin >> str;
 	var1.name = str;
 	std::cin >> str;
@@ -152,73 +122,163 @@ var add_var() {
 	return var1;
 }
 
-void add_gl_var() {
-	var var1 = add_var();
-	var1.address = curr_var_ptr--;
+void addGlobalVariable() {
+	variableDefinition var1 = createVariableDefinition();
+	var1.address = currentVariablePtr--;
 	variables.insert(var1);
 }
 
-std::vector<std::string> tokens;
+void addLocalVariable(functionDefinition& foo) {
+	variableDefinition var1 = createVariableDefinition();
+	foo.code.push_back(PUT_VAL);
+	foo.code.push_back(var1.value);
+	foo.variables.push_back(var1);
+}
 
+void addGlobalString() {
+	std::string name, token, str;
+	std::cin >> name >> token;
+	while (token.back() != '\"') {
+		str.append(token + ' ');
+		std::cin >> token;
+	}
+	str.append(token + '\0');
+	variableDefinition var;
+	var.name = name;
+	var.value = currentStringPtr;
+	strcpy((char*)(memory + currentStringPtr), str.c_str());
+	currentStringPtr += str.size() + 1;
+	var.address = currentVariablePtr--;
+	variables.insert(var);
+}
 
+void addPrintsFunction(functionDefinition& foo) {
+	std::string arg1;
+	std::cin >> arg1;
+	int arga = resolveArguments(foo, arg1, 0);
+	foo.code.push_back(PRINT_STRING);
+	foo.code.push_back(arga);
+}
 
-void add_func(myfunc& foo) {
+void addMoveFunction(functionDefinition& foo) {
+	std::string arg1, arg2;
+	std::cin >> arg1 >> arg2;
+	int arga, argb;
+	arga = resolveArguments(foo, arg1, 0);
+	int indin;
+	argb = resolveArgumentsForDestination(foo, arg2, indin);
+	if (arga == -1) {
+		foo.code.push_back(VARIABLE);
+		foo.code.push_back(std::stoi(arg1));
+		arga = foo.address + foo.code.size() - 1;
+	}
+	foo.code.push_back(MOV);
+	foo.code.push_back(arga);
+	if (argb == -1) {
+		foo.code[indin] = foo.code.size() + foo.address;
+		foo.code.push_back(1);
+	} else {
+		foo.code.push_back(argb);
+	}
+}
+
+void addFunctionCall(functionDefinition& foo) {
+	std::string str;
+	std::cin >> str;
+	functionDefinition foo2;
+	if (foo.rec && foo.name == str) {
+		foo2 = foo;
+	} else {
+		foo2 = *functions.find(functionDefinition(str));
+	}
+	// адрес возврата
+	foo.code.push_back(PUT_VAL);
+	foo.code.push_back(REG_3);
+	int ind_sum = foo.code.size() - 1;
+	//аргументы
+	for (int i = 0; i < foo2.arg_cnt; ++i) {
+		std::cin >> str;
+		int a = resolveArguments(foo, str, 1);
+		if (a == -1) {
+			foo.code.push_back(PUT_VAL);
+			foo.code.push_back(std::stoi(str));
+		} else {
+			foo.code.push_back(PUT_FROM);
+			foo.code.push_back(a);
+		}
+	}
+
+	foo.code.push_back(GOTO_ADD);
+	foo.code.push_back(foo2.address);
+	foo.code[ind_sum] = foo.address + foo.code.size();
+}
+
+void addFunctionReturn(functionDefinition& foo) {
+	for (int i = 0; i < foo.variables.size(); ++i) {
+		foo.code.push_back(POP);
+	}
+	foo.code.push_back(LOOK_ST);
+	foo.code.push_back(1);
+	foo.code.push_back(POP);
+	foo.code.push_back(GOTO_FROM);
+	foo.code.push_back(REG_4);
+}
+
+void addPrintFunction(functionDefinition& foo) {
+	std::string arg1;
+	std::cin >> arg1;
+	int arga = resolveRegister(arg1);
+	foo.code.push_back(PRINT_INT_REG);
+	foo.code.push_back(arga);
+}
+
+void startIf(functionDefinition& foo) {
+	foo.code.push_back(IF_T);
+	foo.code.push_back(foo.address + foo.code.size() + 2);
+	foo.code.push_back(1);
+	ifPointersStack.push_back(foo.code.size() - 1);
+}
+
+void addElse(functionDefinition& foo) {
+	int ind = ifPointersStack.back();
+	ifPointersStack.pop_back();
+	foo.code.push_back(GOTO_ADD);
+	foo.code.push_back(1);
+	ifPointersStack.push_back(foo.code.size() - 1);
+	foo.code[ind] = foo.code.size() + foo.address;
+}
+
+void addScanFunction(functionDefinition& foo) {
+	std::string arg1;
+	std::cin >> arg1;
+	int arga = resolveRegister(arg1);
+	foo.code.push_back(SCAN_INT_REG);
+	foo.code.push_back(arga);
+}
+
+void endIf(functionDefinition& foo) {
+	int ind = ifPointersStack.back();
+	ifPointersStack.pop_back();
+	foo.code[ind] = foo.code.size() + foo.address;
+}
+
+void processFunctionCode(functionDefinition& foo) {
 	std::string str;
 	while (std::cin >> str) {
-		tokens.push_back(str);
 		if (str == "gl_var") {
-			add_var();
-			continue;
+			addGlobalVariable();
 		}
 		if (str == "var") {
-			var var1 = add_var();
-			foo.code.push_back(PUT_VAL);
-			foo.code.push_back(var1.value);
-			foo.variables.push_back(var1);
+			addLocalVariable(foo);
 		}
 		if (str == "var_string") {
-			std::string name, token, str1;
-			std::cin >> name >> token;
-			while (token.back() != '\"') {
-				str1.append(token + ' ');
-				std::cin >> token;
-			}
-			str1.append(token + '\0');
-			var var1;
-			var1.name = name;
-			var1.value = curr_str_ptr;
-			strcpy((char*)(memory + curr_str_ptr), str1.c_str());
-			curr_str_ptr += str1.size() + 1;
-			var1.address = curr_var_ptr--;
-			variables.insert(var1);
+			addGlobalString();
 		}
 		if (str == "prints") {
-			std::string arg1;
-			std::cin >> arg1;
-			int arga = resolve_arg(foo, arg1);
-			foo.code.push_back(PRINT_STRING);
-			foo.code.push_back(arga);
+			addPrintsFunction(foo);
 		}
 		if (str == "mov") {
-			std::string arg1, arg2;
-			std::cin >> arg1 >> arg2;
-			int arga, argb;
-			arga = resolve_arg(foo, arg1);
-			int indin;
-			argb = resolve_arg_dest(foo, arg2, indin);
-			if (arga == -1) {
-				foo.code.push_back(VARIABLE);
-				foo.code.push_back(std::stoi(arg1));
-				arga = foo.address + foo.code.size() - 1;
-			}
-			foo.code.push_back(MOV);
-			foo.code.push_back(arga);
-			if (argb == -1) {
-				foo.code[indin] = foo.code.size() + foo.address;
-				foo.code.push_back(1);
-			} else {
-				foo.code.push_back(argb);
-			}
+			addMoveFunction(foo);
 		}
 		if (str == "sum") {
 			foo.code.push_back(SUM_REG);	
@@ -239,84 +299,56 @@ void add_func(myfunc& foo) {
 			foo.code.push_back(AND);
 		}
 		if (str == "call") {
-			std::cin >> str;
-			myfunc foo2;
-			if (foo.rec && foo.name == str) {
-				foo2 = foo;
-			} else {
-				foo2 = *functions.find(myfunc(str));
-			}
-			// адрес возврата
-			foo.code.push_back(PUT_VAL);
-			foo.code.push_back(REG_3);
-			int ind_sum = foo.code.size() - 1;
-			//аргументы
-			for (int i = 0; i < foo2.arg_cnt; ++i) {
-				std::cin >> str;
-				int a = resolve_arg_call(foo, str);
-				if (a == -1) {
-					foo.code.push_back(PUT_VAL);
-					foo.code.push_back(std::stoi(str));
-				} else {
-					foo.code.push_back(PUT_FROM);
-					foo.code.push_back(a);
-				}
-			}
-			
-			foo.code.push_back(GOTO_ADD);
-			foo.code.push_back(foo2.address);
-			foo.code[ind_sum] = foo.address + foo.code.size();
+			addFunctionCall(foo);
 		}
 		if (str == "return") {
-			for (int i = 0; i < foo.variables.size(); ++i) {
-				foo.code.push_back(POP);
-			}
-			foo.code.push_back(LOOK_ST);
-			foo.code.push_back(1);
-			foo.code.push_back(POP);
-			foo.code.push_back(GOTO_FROM);
-			foo.code.push_back(REG_4);
+			addFunctionReturn(foo);
 		}
 		if (str == "exit") {
 			foo.code.push_back(STOP_COMM);
 		}
 		if (str == "print") {
-			std::string arg1;
-			std::cin >> arg1;
-			int arga = resolve_reg(foo, arg1);
-			foo.code.push_back(PRINT_INT_REG);
-			foo.code.push_back(arga);
+			addPrintFunction(foo);
 		}
 		if (str == "if") {
-			foo.code.push_back(IF_T);
-			foo.code.push_back(foo.address + foo.code.size() + 2);
-			foo.code.push_back(1);
-			ifstack.push_back(foo.code.size() - 1);
+			startIf(foo);
 		}
 		if (str == "else") {
-			int ind = ifstack.back();
-			ifstack.pop_back();
-			foo.code.push_back(GOTO_ADD);
-			foo.code.push_back(1);
-			ifstack.push_back(foo.code.size() - 1);
-			foo.code[ind] = foo.code.size() + foo.address;
+			addElse(foo);
 		}
 		if (str == "endif") {
-			int ind = ifstack.back();
-			ifstack.pop_back();
-			foo.code[ind] = foo.code.size() + foo.address;
+			endIf(foo);
 		}
 		if (str == "scan") {
-			std::string arg1;
-			std::cin >> arg1;
-			int arga = resolve_reg(foo, arg1);
-			foo.code.push_back(SCAN_INT_REG);
-			foo.code.push_back(arga);
+			addScanFunction(foo);
 		}
 		if (str == "enddef") {
 			return;
 		}
 	}
+}
+
+functionDefinition createFunctionDefinition() {
+	std::string name;
+	int num_arg;
+	std::cin >> name;
+	functionDefinition foo;
+	if (name == "rec") {
+		std::cin >> name;
+		foo.name = name;
+		foo.rec = true;
+	}
+	else {
+		foo.name = name;
+	}
+	std::cin >> num_arg;
+	foo.arg_cnt = num_arg;
+	for (int i = 0; i < num_arg; ++i) {
+		std::cin >> name;
+		foo.variables.push_back(name);
+	}
+	foo.address = currentFunctionPtr;
+	return foo;
 }
 
 int main() {
@@ -329,29 +361,10 @@ int main() {
 	
 	std::string str;
 	std::cin >> str;
-	int cnt = 0;
 	while (str == "def") {
-		cnt++;
-		std::string name;
-		int num_arg;
-		std::cin >> name;
-		myfunc foo;
-		if (name == "rec") {
-			std::cin >> name;
-			foo.name = name;
-			foo.rec = true;
-		} else {
-			foo.name = name;
-		}
-		std::cin >> num_arg;
-		foo.arg_cnt = num_arg;
-		for (int i = 0; i < num_arg; ++i) {
-			std::cin >> name;
-			foo.variables.push_back(name);
-		}
-		foo.address = curr_func_ptr;
-		add_func(foo);
-		curr_func_ptr += foo.code.size();
+		functionDefinition foo = createFunctionDefinition();
+		processFunctionCode(foo);
+		currentFunctionPtr += foo.code.size();
 		for (int i = foo.address; i < foo.code.size() + foo.address; ++i) {
 			memory[i] = foo.code[i - foo.address];
 		}
@@ -360,11 +373,11 @@ int main() {
 		if (!(std::cin >> str))
 			break;
 	}
-	for (var var1: variables) {
+	for (variableDefinition var1: variables) {
 		memory[var1.address] = var1.value;
 	}
-	memory[SP_ADD] = curr_var_ptr;
-	auto foo2 = functions.find(myfunc("main"));
+	memory[SP_ADD] = currentVariablePtr;
+	auto foo2 = functions.find(functionDefinition("main"));
 	memory[IP_ADD] = foo2->address;
 
 	int write_cnt = 0;

@@ -43,7 +43,9 @@ void callDestroyers();
 							RETHROW(exception)				\
 						}	
 
-#define CATCH(type, name)  } else {												\
+#define CATCH(type, name)		delete envs.back();								\
+								envs.pop_back();								\
+							} else {											\
 								delete envs.back();								\
 								envs.pop_back();								\
 								type* ptr = dynamic_cast<type*>(raisedException); \

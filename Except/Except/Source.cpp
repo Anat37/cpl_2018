@@ -36,6 +36,7 @@ public:
 };
 
 void fooThrowMessage(TestObject arg) {
+	std::cout << "throwed message" <<std::endl;
 	THROW(new MessageException("foo throw"))
 }
 
@@ -53,7 +54,7 @@ void fooWithMessageTry(TestObject arg, std::function<void(TestObject)> func) {
 		foo(TestObject(), func);  // 1
 	CATCH(MessageException, exc)
 		std::cout << exc.message << std::endl;
-	}
+	ENDCATCH
 }
 
 void fooWithNumTry(TestObject arg, std::function<void(TestObject)> func) {
@@ -61,7 +62,7 @@ void fooWithNumTry(TestObject arg, std::function<void(TestObject)> func) {
 		fooWithMessageTry(TestObject(), func);
 	CATCH(NumException, exc)
 		std::cout << exc.num << std::endl;
-}
+	ENDCATCH
 }
 
 
@@ -86,13 +87,24 @@ public:
 	}
 };
 
+void test4() {
+	TRY
+		fooWithMessageTry(TestObject(), std::function<void(TestObject)>(fooThrowMessage));
+	CATCH(NumException, exc)
+		std::cout << exc.num << std::endl;
+	CATCH(MessageException, exc)
+		std::cout << exc.message << std::endl;
+	ENDCATCH
+
+}
+
 void test3() {
 	TRY
 		BadTestObject obj;
 		THROW(new NumException(6))
 	CATCH(NumException, p)
 		std::cout << p.num << std::endl;
-	}
+	ENDCATCH
 	
 }
 
@@ -100,10 +112,11 @@ int main() {
 	TRY
 		test1();
 		test2();
+		test4();
 		THROW(new BaseException())
 	CATCH(BaseException, p)
 		std::cout << "error";
-	}
+	ENDCATCH
 	//test3();
 	system("pause");
 }

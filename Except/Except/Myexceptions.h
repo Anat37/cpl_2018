@@ -26,7 +26,7 @@ void callDestroyers();
 #define TRY tries.push_back(stackObjects.size());   \
 		env = new jmp_buf[1];						\
 		jmpVal = setjmp(*env);						\
-		if (!jmpVal) {								\
+		if (!jmpVal) {{								\
 			envs.push_back(env);
 
 #define RETHROW(exception) if (envs.size() == 0) {	\
@@ -43,18 +43,18 @@ void callDestroyers();
 							RETHROW(exception)				\
 						}	
 
-#define CATCH(type, name)		delete envs.back();								\
-								envs.pop_back();								\
-							} else {											\
-								delete envs.back();								\
-								envs.pop_back();								\
-								type* ptr = dynamic_cast<type*>(raisedException); \
-								if (ptr == nullptr) {							\
-									RETHROW(raisedException)					\
-								} else {										\
+#define CATCH(type, name)	}}									\
+							{type* ptr = dynamic_cast<type*>(raisedException); \
+								if (ptr != nullptr) {							\
 									raisedException = nullptr;					\
-								}												\
-								type name = *ptr;
+	type name = *ptr;
+
+#define ENDCATCH }}							\
+				delete envs.back();			\
+				envs.pop_back();			\
+				if (raisedException != nullptr){ \
+					RETHROW(raisedException)	\
+				}
 
 
 

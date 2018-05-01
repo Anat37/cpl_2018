@@ -17,6 +17,7 @@ BaseObject::~BaseObject() {
 }
 
 void callDestroyers() {
+	int h = 8;
 	for (int i = stackObjects.size() - 1; i >= tries.back(); i--) {
 		stackObjects[i]->~BaseObject();
 	}

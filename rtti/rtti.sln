@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2037
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rtti", "rtti\rtti.vcxproj", "{E298546C-4B18-4A43-8CC4-F6E5EB815056}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E298546C-4B18-4A43-8CC4-F6E5EB815056}.Debug|x64.ActiveCfg = Debug|x64
+		{E298546C-4B18-4A43-8CC4-F6E5EB815056}.Debug|x64.Build.0 = Debug|x64
+		{E298546C-4B18-4A43-8CC4-F6E5EB815056}.Debug|x86.ActiveCfg = Debug|Win32
+		{E298546C-4B18-4A43-8CC4-F6E5EB815056}.Debug|x86.Build.0 = Debug|Win32
+		{E298546C-4B18-4A43-8CC4-F6E5EB815056}.Release|x64.ActiveCfg = Release|x64
+		{E298546C-4B18-4A43-8CC4-F6E5EB815056}.Release|x64.Build.0 = Release|x64
+		{E298546C-4B18-4A43-8CC4-F6E5EB815056}.Release|x86.ActiveCfg = Release|Win32
+		{E298546C-4B18-4A43-8CC4-F6E5EB815056}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {16B76585-BE14-4112-9D16-B00505BBD944}
+	EndGlobalSection
+EndGlobal
